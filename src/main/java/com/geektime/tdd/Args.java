@@ -33,18 +33,46 @@ public class Args {
 
     private static Object parseObject(Parameter parameter, List<String> arguments) {
         Option option = parameter.getAnnotation(Option.class);
-        Object value = null;
-        if (parameter.getType() == Boolean.class) {
-            value = arguments.contains(option.value());
+        Class<?> type = parameter.getType();
+        OptionParser parser = null;
+        if (type == Boolean.class) {
+            parser = new BooleanParser();
         }
-        if (parameter.getType() == Integer.class) {
+        if (type == Integer.class) {
+            parser = new IntParser();
+        }
+        if (type == String.class) {
+            parser = new StringParser();
+        }
+        return parser.parse(arguments, option);
+    }
+
+    interface OptionParser {
+
+        Object parse(List<String> arguments, Option option);
+    }
+
+    static class BooleanParser implements OptionParser {
+
+        @Override
+        public Object parse(List<String> arguments, Option option) {
+            return arguments.contains(option.value());
+        }
+    }
+
+    static class IntParser implements OptionParser {
+        @Override
+        public Object parse(List<String> arguments, Option option) {
             int valueIndex = arguments.indexOf(option.value()) + 1;
-            value = Integer.parseInt(arguments.get(valueIndex));
+            return Integer.parseInt(arguments.get(valueIndex));
         }
-        if (parameter.getType() == String.class) {
+    }
+
+    static class StringParser implements OptionParser {
+        @Override
+        public Object parse(List<String> arguments, Option option) {
             int valueIndex = arguments.indexOf(option.value()) + 1;
-            value = arguments.get(valueIndex);
+            return arguments.get(valueIndex);
         }
-        return value;
     }
 }
