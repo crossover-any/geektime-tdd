@@ -4,6 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Args
@@ -32,47 +33,13 @@ public class Args {
     }
 
     private static Object parseObject(Parameter parameter, List<String> arguments) {
-        Option option = parameter.getAnnotation(Option.class);
-        Class<?> type = parameter.getType();
-        OptionParser parser = null;
-        if (type == Boolean.class) {
-            parser = new BooleanParser();
-        }
-        if (type == Integer.class) {
-            parser = new IntParser();
-        }
-        if (type == String.class) {
-            parser = new StringParser();
-        }
-        return parser.parse(arguments, option);
+        return PARSERS.get(parameter.getType()).parse(arguments, parameter.getAnnotation(Option.class));
     }
 
-    interface OptionParser {
+    private static Map<Class<?>, OptionParser> PARSERS = Map.of(
+            Boolean.class, new BooleanParser(),
+            Integer.class, new IntParser(),
+            String.class, new StringParser()
+    );
 
-        Object parse(List<String> arguments, Option option);
-    }
-
-    static class BooleanParser implements OptionParser {
-
-        @Override
-        public Object parse(List<String> arguments, Option option) {
-            return arguments.contains(option.value());
-        }
-    }
-
-    static class IntParser implements OptionParser {
-        @Override
-        public Object parse(List<String> arguments, Option option) {
-            int valueIndex = arguments.indexOf(option.value()) + 1;
-            return Integer.parseInt(arguments.get(valueIndex));
-        }
-    }
-
-    static class StringParser implements OptionParser {
-        @Override
-        public Object parse(List<String> arguments, Option option) {
-            int valueIndex = arguments.indexOf(option.value()) + 1;
-            return arguments.get(valueIndex);
-        }
-    }
 }
