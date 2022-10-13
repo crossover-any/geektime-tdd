@@ -1,10 +1,12 @@
 package com.geektime.tdd;
 
+import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Args
@@ -26,20 +28,25 @@ public class Args {
         Object[] values = Arrays.stream(parameters).map(parameter -> parseObject(parameter, arguments)).toArray();
         try {
             return ((T) declaredConstructor.newInstance(values));
+        } catch (IllegalOptionException e) {
+            throw e;
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object parseObject(Parameter parameter, List<String> arguments) {
+        if (!parameter.isAnnotationPresent(Option.class)) {
+            throw new IllegalOptionException(parameter.getName());
+        }
         return PARSERS.get(parameter.getType()).parse(arguments, parameter.getAnnotation(Option.class));
     }
 
     private static final Map<Class<?>, OptionParser> PARSERS = Map.of(
             Boolean.class, new BooleanParser(),
-            Integer.class, new SingleValueOptionParse<>(Integer::parseInt),
-            String.class, new SingleValueOptionParse<>(String::valueOf)
+            Integer.class, new SingleValueOptionParser<>(0, Integer::parseInt),
+            String.class, new SingleValueOptionParser<>("", String::valueOf)
     );
 
 }

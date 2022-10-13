@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -21,13 +22,13 @@ class ArgsTest {
     // str -d /usr/logs
     // Multi options -l -p 8080 -d /usr/logs
     // Sad Path
-    // TODO -bool -l t或者 -l t f
-    // TODO -int -p 或者 -p 8080 8081
-    // TODO -str -d 或者 -d /usr/logs /usr/vars
+    //  -bool -l t或者 -l t f
+    //  -int -p 或者 -p 8080 8081
+    //  -str -d 或者 -d /usr/logs /usr/vars
     // Default Value
-    // TODO -bool false
-    // TODO -int 0
-    // TODO -str ""
+    //  -bool false
+    //  -int 0
+    //  -str ""
 
     @Disabled("编译")
     @Test
@@ -35,39 +36,6 @@ class ArgsTest {
         Options option = Args.parse(Options.class, "-l", "-p", "8080", "-d", "usr/logs");
         assert option != null;
         assertTrue(option.logging());
-    }
-
-    // bool -l
-    @Test
-    void should_parse_bool_as_option() {
-        BoolOption boolOption = Args.parse(BoolOption.class, "-l");
-        assert boolOption != null;
-        assertTrue(boolOption.logging());
-    }
-
-    static record BoolOption(@Option("-l") Boolean logging) {
-    }
-
-    // int -p 8080
-    @Test
-    void should_parse_int_as_option() {
-        IntOption intOption = Args.parse(IntOption.class, "-p", "8080");
-        assert intOption != null;
-        assertEquals(8080, intOption.port());
-    }
-
-    static record IntOption(@Option("-p") Integer port) {
-    }
-
-    // str -d /usr/logs
-    @Test
-    void should_parse_str_as_option() {
-        StrOption strOption = Args.parse(StrOption.class, "-d", "/usr/logs");
-        assert strOption != null;
-        assertEquals("/usr/logs", strOption.director());
-    }
-
-    static record StrOption(@Option("-d") String director) {
     }
 
     // Multi options -l -p 8080 -d /usr/logs
@@ -80,7 +48,17 @@ class ArgsTest {
         assertEquals("/usr/logs", multiOptions.director());
     }
 
+    @Test
+    void should_throw_illegal_option_exception_if_option_annotation_not_present() {
+        IllegalOptionException e = assertThrows(IllegalOptionException.class, () -> Args.parse(OptionsWithoutAnnotation.class, "-l", "-p", "8080", "-d", "/usr/logs"));
+        assertEquals("logging", e.getOption());
+    }
+
     static record MultiOptions(@Option("-l") Boolean logging, @Option("-p") Integer port,
+                               @Option("-d") String director) {
+    }
+
+    static record OptionsWithoutAnnotation(Boolean logging, @Option("-p") Integer port,
                                @Option("-d") String director) {
     }
 
