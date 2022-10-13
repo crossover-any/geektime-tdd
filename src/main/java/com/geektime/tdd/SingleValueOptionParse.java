@@ -4,23 +4,20 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
- * IntParser
+ * SingleValueOptionParse
  *
  * @author tengxq
  */
-class IntParser implements OptionParser {
+class SingleValueOptionParse<T> implements OptionParser {
 
-    Function<String, Object> valueParser = Integer::parseInt;
+    Function<String, T> valueParser;
 
-    public IntParser() {
-    }
-
-    public IntParser(Function<String, Object> valueParser) {
+    public SingleValueOptionParse(Function<String, T> valueParser) {
         this.valueParser = valueParser;
     }
 
     @Override
-    public Object parse(List<String> arguments, Option option) {
+    public T parse(List<String> arguments, Option option) {
         int valueIndex = arguments.indexOf(option.value()) + 1;
         return valueParser.apply(arguments.get(valueIndex));
     }

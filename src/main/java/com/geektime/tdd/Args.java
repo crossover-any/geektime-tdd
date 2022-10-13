@@ -36,10 +36,10 @@ public class Args {
         return PARSERS.get(parameter.getType()).parse(arguments, parameter.getAnnotation(Option.class));
     }
 
-    private static Map<Class<?>, OptionParser> PARSERS = Map.of(
+    private static final Map<Class<?>, OptionParser> PARSERS = Map.of(
             Boolean.class, new BooleanParser(),
-            Integer.class, new IntParser(),
-            String.class, new StringParser()
+            Integer.class, new SingleValueOptionParse<>(Integer::parseInt),
+            String.class, new SingleValueOptionParse<>(String::valueOf)
     );
 
 }
