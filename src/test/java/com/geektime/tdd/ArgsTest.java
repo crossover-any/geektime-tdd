@@ -1,5 +1,6 @@
 package com.geektime.tdd;
 
+import com.geektime.tdd.exception.IllegalOptionException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +35,6 @@ class ArgsTest {
     @Test
     void should_compile_pass() {
         Options option = Args.parse(Options.class, "-l", "-p", "8080", "-d", "usr/logs");
-        assert option != null;
         assertTrue(option.logging());
     }
 
@@ -42,7 +42,6 @@ class ArgsTest {
     @Test
     void should_parse_multi_as_option() {
         MultiOptions multiOptions = Args.parse(MultiOptions.class, "-l", "-p", "8080", "-d", "/usr/logs");
-        assert multiOptions != null;
         assertTrue(multiOptions.logging());
         assertEquals(8080, multiOptions.port());
         assertEquals("/usr/logs", multiOptions.director());

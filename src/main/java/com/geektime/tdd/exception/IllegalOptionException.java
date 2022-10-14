@@ -1,4 +1,4 @@
-package com.geektime.tdd;
+package com.geektime.tdd.exception;
 
 /**
  * IllegalOptionException

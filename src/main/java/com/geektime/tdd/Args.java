@@ -1,12 +1,12 @@
 package com.geektime.tdd;
 
-import java.io.Serializable;
+import com.geektime.tdd.exception.IllegalOptionException;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Args
@@ -44,9 +44,9 @@ public class Args {
     }
 
     private static final Map<Class<?>, OptionParser> PARSERS = Map.of(
-            Boolean.class, new BooleanParser(),
-            Integer.class, new SingleValueOptionParser<>(0, Integer::parseInt),
-            String.class, new SingleValueOptionParser<>("", String::valueOf)
+            Boolean.class, OptionParsers.bool(),
+            Integer.class, OptionParsers.unary(0, Integer::parseInt),
+            String.class, OptionParsers.unary("", String::valueOf)
     );
 
 }
