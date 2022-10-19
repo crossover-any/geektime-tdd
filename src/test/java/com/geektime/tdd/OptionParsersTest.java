@@ -1,5 +1,6 @@
 package com.geektime.tdd;
 
+import com.geektime.tdd.exception.IllegalValueException;
 import com.geektime.tdd.exception.InsufficientArgumentsException;
 import com.geektime.tdd.exception.TooManyArgumentsException;
 import org.junit.jupiter.api.Nested;
@@ -117,8 +118,23 @@ class OptionParsersTest {
             String[] value = OptionParsers.list(String[]::new, String::valueOf).parse(asList("-g", "this", "is"), option("-g"));
             assertArrayEquals(new String[]{"this", "is"}, value);
         }
+
         // TODO default value []
+        @Test
+        void should_set_default_value() {
+            String[] value = OptionParsers.list(String[]::new, String::valueOf).parse(asList(), option("-g"));
+            assertArrayEquals(new String[]{}, value);
+        }
+
         // TODO -d throw a exception
+        @Test
+        void should_throw_exception_if_value_cant_parse_value() {
+            Function<String, String> parser = (it) -> {throw new RuntimeException();};
+            IllegalValueException exception = assertThrows(IllegalValueException.class, () -> {
+                OptionParsers.list(String[]::new, parser).parse(asList("-g", "this", "is"), option("-g"));
+            });
+            assertEquals("-g", exception.getOption());
+        }
 
 
     }
