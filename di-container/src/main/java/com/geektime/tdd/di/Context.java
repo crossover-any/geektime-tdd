@@ -1,9 +1,13 @@
 package com.geektime.tdd.di;
 
+import jakarta.inject.Inject;
 import jakarta.inject.Provider;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Arrays.stream;
 
 /**
  * 容器
@@ -25,10 +29,23 @@ public class Context {
     public <T, M extends T> void bind(Class<T> componentClass, Class<M> implementation) {
         providers.put(componentClass, (Provider<T>) () -> {
             try {
-                return implementation.getConstructor().newInstance();
+                Constructor<M> injectConstructor = getInjectConstructor(implementation);
+                Object[] dependencies = stream(injectConstructor.getParameters()).map(p -> get(p.getType())).toArray(Object[]::new);
+                return injectConstructor.newInstance(dependencies);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    private <T> Constructor<T> getInjectConstructor(Class<T> implementation) throws NoSuchMethodException {
+        return (Constructor<T>) stream(implementation.getConstructors()).filter(c -> c.isAnnotationPresent(Inject.class))
+                .findFirst().orElseGet(() -> {
+                    try {
+                        return implementation.getConstructor();
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
     }
 }
