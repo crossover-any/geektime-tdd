@@ -1,2 +1,5 @@
 rootProject.name = 'geektime-tdd'
+include 'di'
+include 'args'
+include 'di-container'
 
