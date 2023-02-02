@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.geektime.tdd.ArgsTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2023-02-02T02:48:22" hostname="DESKTOP-7DUMU07" time="0.035">
-  <properties/>
-  <testcase name="should_set_true_if_bool_option_flag_present()" classname="com.geektime.tdd.ArgsTest" time="0.035"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
