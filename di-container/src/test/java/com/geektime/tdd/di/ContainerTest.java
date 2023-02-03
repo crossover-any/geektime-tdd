@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -63,13 +64,35 @@ public class ContainerTest {
             @Test
             void should_bind_type_to_a_class_with_transitive_dependencies() {
                 context.bind(Component.class, ComponentWithInjectConstructor.class);
-                context.bind(Dependency.class, DependencyWithInjectConsturctor.class);
+                context.bind(Dependency.class, DependencyWithInjectConstructor.class);
                 context.bind(String.class, "indirect dependency");
                 Component instance = context.get(Component.class);
                 assertNotNull(instance);
                 Dependency dependency = ((ComponentWithInjectConstructor) instance).dependency;
                 assertNotNull(dependency);
-                assertEquals("indirect dependency", ((DependencyWithInjectConsturctor)dependency).getDependency());
+                assertEquals("indirect dependency", ((DependencyWithInjectConstructor)dependency).getDependency());
+            }
+
+            @Test
+            void should_throw_exception_if_no_inject_or_default_constructor_provided() {
+                context.bind(Component.class, ComponentWithNoInjectOrDefaultConstructor.class);
+                assertThrows(IllegalComponentException.class, () -> context.get(Component.class));
+            }
+
+            // dependencies not exist
+            @Test
+            void should_throw_exception_if_dependency_not_found() {
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                assertThrows(DependencyNotFoundException.class, () -> context.get(Component.class));
+
+            }
+
+            @Test
+            void should_throw_exception_if_cyclic_dependencies_found() {
+                context.bind(Component.class, ComponentWithInjectConstructor.class);
+                context.bind(Dependency.class, DependencyDependenOnComponent.class);
+
+                assertThrows(CyclicDependencyException.class, () -> context.get(Dependency.class));
             }
         }
 
@@ -117,11 +140,25 @@ public class ContainerTest {
         }
     }
 
-    static class DependencyWithInjectConsturctor implements Dependency {
+    static class ComponentWithNoInjectOrDefaultConstructor implements Component {
+
+    }
+
+    static class DependencyDependenOnComponent implements Dependency {
+
+        Component component;
+
+        @Inject
+        public DependencyDependenOnComponent(Component component) {
+            this.component = component;
+        }
+    }
+
+    static class DependencyWithInjectConstructor implements Dependency {
         private String dependency;
 
         @Inject
-        public DependencyWithInjectConsturctor(String dependency) {
+        public DependencyWithInjectConstructor(String dependency) {
             this.dependency = dependency;
         }
 
