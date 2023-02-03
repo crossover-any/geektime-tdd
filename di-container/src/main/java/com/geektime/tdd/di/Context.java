@@ -32,16 +32,35 @@ public class Context {
     }
 
     public <T, M extends T> void bind(Class<T> componentClass, Class<M> implementation) {
-        //stream(implementation.getConstructors()).filter(c -> c.isAnnotationPresent(Inject.class)).co
-        providers.put(componentClass, (Provider<T>) () -> {
-                try {
-                    Constructor<M> injectConstructor = getInjectConstructor(implementation);
-                    Object[] dependencies = stream(injectConstructor.getParameters()).map(p -> get(p.getType())).toArray(Object[]::new);
-                    return injectConstructor.newInstance(dependencies);
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException  e) {
-                    throw new IllegalComponentException();
-                }
-        });
+        providers.put(componentClass, new ConstructorProvider<>(implementation));
+    }
+
+    class ConstructorProvider<T> implements Provider<T> {
+
+        private boolean constructing;
+
+        Class<T> implementation;
+
+        public ConstructorProvider(Class<T> implementation) {
+            this.implementation = implementation;
+        }
+
+        @Override
+        public T get() {
+            if (constructing) {
+                throw new CyclicDependencyException();
+            }
+            try {
+                constructing = true;
+                Constructor<T> injectConstructor = getInjectConstructor(implementation);
+                Object[] dependencies = stream(injectConstructor.getParameters()).map(p -> Context.this.get(p.getType())).toArray(Object[]::new);
+                return injectConstructor.newInstance(dependencies);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException  e) {
+                throw new IllegalComponentException();
+            } finally {
+                constructing = false;
+            }
+        }
     }
 
     @SuppressWarnings("uncheck")

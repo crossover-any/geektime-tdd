@@ -94,6 +94,7 @@ public class ContainerTest {
 
                 assertThrows(CyclicDependencyException.class, () -> context.get(Dependency.class));
             }
+
         }
 
         @Nested
