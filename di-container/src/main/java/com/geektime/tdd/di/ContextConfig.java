@@ -5,11 +5,12 @@ import jakarta.inject.Inject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
@@ -38,7 +39,7 @@ public class ContextConfig {
 
     @SuppressWarnings("unchecked")
     public Context getContext() {
-        dependencies.keySet().forEach(d -> checkDependencies(d, new Stack<>()));
+        dependencies.keySet().forEach(d -> checkDependencies(d, new ArrayDeque<>()));
         return new Context() {
             @Override
             public <T> T get(Class<T> componentClassType) {
@@ -50,7 +51,7 @@ public class ContextConfig {
         };
     }
 
-    private void checkDependencies(Class<?> componentClass, Stack<Class<?>> visiting) {
+    private void checkDependencies(Class<?> componentClass, Deque<Class<?>> visiting) {
         for (Class<?> dependency : dependencies.get(componentClass)) {
             if (!dependencies.containsKey(dependency)) {
                 throw new DependencyNotFoundException();
@@ -68,7 +69,6 @@ public class ContextConfig {
 
     static class ConstructorProvider<T> implements ComponentProvider<T> {
 
-        private boolean constructing;
 
         Class<T> implementation;
 
@@ -81,17 +81,11 @@ public class ContextConfig {
 
         @Override
         public T get(Context context) {
-            if (constructing) {
-                throw new CyclicDependencyException();
-            }
             try {
-                constructing = true;
                 Object[] dependencies = stream(injectConstructor.getParameters()).map(p -> context.get(p.getType())).toArray(Object[]::new);
                 return injectConstructor.newInstance(dependencies);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new IllegalComponentException();
-            } finally {
-                constructing = false;
             }
         }
 
