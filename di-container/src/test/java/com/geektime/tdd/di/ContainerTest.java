@@ -95,8 +95,7 @@ public class ContainerTest {
                 contextConfig.bind(Component.class, ComponentWithInjectConstructor.class);
                 contextConfig.bind(Dependency.class, DependencyDependOnComponent.class);
 
-                Context context = contextConfig.getContext();
-                assertThrows(CyclicDependencyException.class, () -> context.get(Component.class));
+                assertThrows(CyclicDependencyException.class, () -> contextConfig.getContext());
             }
 
         }

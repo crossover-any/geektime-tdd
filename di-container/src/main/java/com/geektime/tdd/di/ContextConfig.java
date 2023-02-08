@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
@@ -37,13 +38,7 @@ public class ContextConfig {
 
     @SuppressWarnings("unchecked")
     public Context getContext() {
-        for (Map.Entry<Class<?>, List<Class<?>>> entry : dependencies.entrySet()) {
-            for (Class<?> dependency : entry.getValue()) {
-                if (!dependencies.containsKey(dependency)) {
-                    throw new DependencyNotFoundException();
-                }
-            }
-        }
+        dependencies.keySet().forEach(d -> checkDependencies(d, new Stack<>()));
         return new Context() {
             @Override
             public <T> T get(Class<T> componentClassType) {
@@ -53,6 +48,21 @@ public class ContextConfig {
                 return (T) providers.get(componentClassType).get(this);
             }
         };
+    }
+
+    private void checkDependencies(Class<?> componentClass, Stack<Class<?>> visiting) {
+        for (Class<?> dependency : dependencies.get(componentClass)) {
+            if (!dependencies.containsKey(dependency)) {
+                throw new DependencyNotFoundException();
+            }
+            if (visiting.contains(dependency)) {
+                throw new CyclicDependencyException();
+            }
+            visiting.push(dependency);
+            checkDependencies(dependency, visiting);
+            visiting.pop();
+        }
+
     }
 
 
