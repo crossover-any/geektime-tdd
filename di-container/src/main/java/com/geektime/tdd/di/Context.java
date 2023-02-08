@@ -1,77 +1,10 @@
 package com.geektime.tdd.di;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Provider;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static java.util.Arrays.stream;
-
 /**
- * 容器
+ * xxx
  *
  * @author tengxq
  */
-public class Context {
-
-    private final Map<Class<?>, Provider<?>> providers = new HashMap<>();
-
-    public <T> void bind(Class<T> componentClass, T instance) {
-        providers.put(componentClass, (Provider<T>) () -> instance);
-    }
-
-
-    public <T> T get(Class<T> componentClassType) {
-        if (!providers.containsKey(componentClassType)) {
-            throw new DependencyNotFoundException();
-        }
-        return (T) providers.get(componentClassType).get();
-    }
-
-    public <T, M extends T> void bind(Class<T> componentClass, Class<M> implementation) {
-        providers.put(componentClass, new ConstructorProvider<>(implementation));
-    }
-
-    class ConstructorProvider<T> implements Provider<T> {
-
-        private boolean constructing;
-
-        Class<T> implementation;
-
-        public ConstructorProvider(Class<T> implementation) {
-            this.implementation = implementation;
-        }
-
-        @Override
-        public T get() {
-            if (constructing) {
-                throw new CyclicDependencyException();
-            }
-            try {
-                constructing = true;
-                Constructor<T> injectConstructor = getInjectConstructor(implementation);
-                Object[] dependencies = stream(injectConstructor.getParameters()).map(p -> Context.this.get(p.getType())).toArray(Object[]::new);
-                return injectConstructor.newInstance(dependencies);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException  e) {
-                throw new IllegalComponentException();
-            } finally {
-                constructing = false;
-            }
-        }
-    }
-
-    @SuppressWarnings("uncheck")
-    private <T> Constructor<T> getInjectConstructor(Class<T> implementation) {
-        return (Constructor<T>) stream(implementation.getConstructors()).filter(c -> c.isAnnotationPresent(Inject.class))
-                .findFirst().orElseGet(() -> {
-                    try {
-                        return implementation.getConstructor();
-                    } catch (NoSuchMethodException e) {
-                        throw new IllegalComponentException();
-                    }
-                });
-    }
+public interface Context {
+    <T> T get(Class<T> componentClassType);
 }
