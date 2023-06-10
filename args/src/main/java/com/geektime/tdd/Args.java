@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Args
@@ -31,16 +32,41 @@ public class Args {
 
     }
 
-    private static Object parseOption(List<String> argsList, Parameter parameter) {
-        Object value = null;
-        Option option = parameter.getDeclaredAnnotation(Option.class);
-        if (parameter.getType() == Boolean.class) {
-            value = argsList.contains(option.value());
-        } else if (parameter.getType() == Integer.class) {
-           value = Integer.parseInt(argsList.get(argsList.indexOf(option.value()) + 1));
-        } else if (parameter.getType() == String.class) {
-            value = argsList.get(argsList.indexOf(option.value()) + 1);
+    private static Object parseOption(List<String> arguments, Parameter parameter) {
+        return PARSERS.get(parameter.getType()).parse(arguments, parameter.getDeclaredAnnotation(Option.class));
+    }
+
+    private static Map<Class<?>, OptionParser> PARSERS = Map.of(
+            Boolean.class, new BoolOptionParser(),
+            Integer.class, new IntOptionParser(),
+            String.class, new StringOptionParser()
+    );
+
+    interface OptionParser {
+        Object parse(List<String> arguments, Option option);
+    }
+
+    static class StringOptionParser implements OptionParser {
+
+        @Override
+        public Object parse(List<String> arguments, Option option) {
+            return arguments.get(arguments.indexOf(option.value()) + 1);
         }
-        return value;
+    }
+
+    static class IntOptionParser implements OptionParser {
+
+        @Override
+        public Object parse(List<String> arguments, Option option) {
+            return Integer.parseInt(arguments.get(arguments.indexOf(option.value()) + 1));
+        }
+    }
+
+    static class BoolOptionParser implements OptionParser {
+
+        @Override
+        public Object parse(List<String> arguments, Option option) {
+            return arguments.contains(option.value());
+        }
     }
 }
