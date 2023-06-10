@@ -1,6 +1,10 @@
 package com.geektime.tdd;
 
 import com.geektime.tdd.annotation.Option;
+import com.geektime.tdd.service.BoolOptionParser;
+import com.geektime.tdd.service.IntOptionParser;
+import com.geektime.tdd.service.OptionParser;
+import com.geektime.tdd.service.StringOptionParser;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
@@ -36,37 +40,10 @@ public class Args {
         return PARSERS.get(parameter.getType()).parse(arguments, parameter.getDeclaredAnnotation(Option.class));
     }
 
-    private static Map<Class<?>, OptionParser> PARSERS = Map.of(
+    private static final Map<Class<?>, OptionParser> PARSERS = Map.of(
             Boolean.class, new BoolOptionParser(),
             Integer.class, new IntOptionParser(),
             String.class, new StringOptionParser()
     );
 
-    interface OptionParser {
-        Object parse(List<String> arguments, Option option);
-    }
-
-    static class StringOptionParser implements OptionParser {
-
-        @Override
-        public Object parse(List<String> arguments, Option option) {
-            return arguments.get(arguments.indexOf(option.value()) + 1);
-        }
-    }
-
-    static class IntOptionParser implements OptionParser {
-
-        @Override
-        public Object parse(List<String> arguments, Option option) {
-            return Integer.parseInt(arguments.get(arguments.indexOf(option.value()) + 1));
-        }
-    }
-
-    static class BoolOptionParser implements OptionParser {
-
-        @Override
-        public Object parse(List<String> arguments, Option option) {
-            return arguments.contains(option.value());
-        }
-    }
 }
