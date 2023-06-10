@@ -17,10 +17,10 @@ public class ArgsTest {
     // -l -p 8080 -d /usr/logs
     // Happy Path
     // Single Option
-    // TODO bool -l
-    // TODO int -p 8080
-    // TODO str -d /usr/logs
-    // TODO Multi options -l -p 8080 -d /usr/logs
+    //   bool -l
+    //   int -p 8080
+    //   str -d /usr/logs
+    //   Multi options -l -p 8080 -d /usr/logs
     // Sad Path
     // TODO -bool -l t或者 -l t f
     // TODO -int -p 或者 -p 8080 8081
@@ -37,7 +37,7 @@ public class ArgsTest {
     }
 
     @Test
-    void should_set_true_if_bool_option_flag_not_present() {
+    void should_set_false_if_bool_option_flag_not_present() {
         BoolOption option = Args.parse(BoolOption.class, "-d");
         Assertions.assertFalse(option.logging());
     }
@@ -59,7 +59,7 @@ public class ArgsTest {
         MultiOption option = Args.parse(MultiOption.class, "-l", "-p", "8080", "-d", "/usr/log");
         assertTrue(option.logging());
         assertEquals(8080, option.port());
-        assertEquals("/usr/logs", option.directory());
+        assertEquals("/usr/log", option.directory());
     }
 
     static record BoolOption(@Option("-l") Boolean logging) {
@@ -72,6 +72,7 @@ public class ArgsTest {
     }
 
     static record MultiOption(@Option("-l") Boolean logging,
-                               @Option("-p") Integer port, @Option("-d") String directory) {
+                              @Option("-p") Integer port,
+                              @Option("-d") String directory) {
     }
 }

@@ -21,23 +21,26 @@ public class Args {
     @SuppressWarnings("unchecked")
     public static <T> T parse(Class<T> optionClass, String... args) {
         try {
-            List<String> argsList = Arrays.asList(args);
+            List<String> arguments = Arrays.asList(args);
             Constructor<?> constructor = optionClass.getDeclaredConstructors()[0];
-            Parameter parameter = constructor.getParameters()[0];
-            Object value = null;
-            Option option = parameter.getDeclaredAnnotation(Option.class);
-            if (parameter.getType() == Boolean.class) {
-                value = argsList.contains(option.value());
-            } else if (parameter.getType() == Integer.class) {
-               value = Integer.parseInt(argsList.get(argsList.indexOf(option.value()) + 1));
-                return (T) constructor.newInstance(value);
-            } else if (parameter.getType() == String.class) {
-                value = argsList.get(argsList.indexOf(option.value()) + 1);
-            }
-            return (T) constructor.newInstance(value);
+            Object[] values = Arrays.stream(constructor.getParameters()).map(p -> parseOption(arguments, p)).toArray();
+            return (T) constructor.newInstance(values);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private static Object parseOption(List<String> argsList, Parameter parameter) {
+        Object value = null;
+        Option option = parameter.getDeclaredAnnotation(Option.class);
+        if (parameter.getType() == Boolean.class) {
+            value = argsList.contains(option.value());
+        } else if (parameter.getType() == Integer.class) {
+           value = Integer.parseInt(argsList.get(argsList.indexOf(option.value()) + 1));
+        } else if (parameter.getType() == String.class) {
+            value = argsList.get(argsList.indexOf(option.value()) + 1);
+        }
+        return value;
     }
 }
